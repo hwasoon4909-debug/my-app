@@ -86,6 +86,28 @@ button { font: inherit; color: inherit; cursor: pointer; letter-spacing: inherit
   backdrop-filter: blur(12px);
 }
 
+.top-right { display: flex; align-items: center; gap: 8px; }
+/* 소리 켜기/끄기 */
+.btn-sound {
+  width: var(--tap);
+  height: var(--tap);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--glass-line);
+  background: var(--glass);
+  color: var(--accent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.btn-sound svg { width: 22px; height: 22px; fill: currentColor; }
+.btn-sound .ico-off { display: none; }
+.btn-sound[aria-pressed="false"] { color: #8AA0B5; }
+.btn-sound[aria-pressed="false"] .ico-on { display: none; }
+.btn-sound[aria-pressed="false"] .ico-off { display: block; }
+
 /* ----- 가운데 ----- */
 .content {
   flex: 1;

@@ -2,6 +2,7 @@
 // 저장 이름은 바꾸지 않아요 (바꾸면 지난 기록이 안 보여요).
 const RECORDS_KEY = 'my-app-water-records'; // { "2026-11-12": 3, ... }
 const LAST_KEY = 'my-app-water-last';       // 마지막으로 마신 시간 (숫자)
+const SOUND_KEY = 'my-app-water-sound';     // 'off'면 소리 끔
 const ML_PER_CUP = 250;
 const GOAL = 8;
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
@@ -21,6 +22,76 @@ function saveLast(t) {
     if (t) localStorage.setItem(LAST_KEY, String(t));
     else localStorage.removeItem(LAST_KEY);
   } catch (e) {}
+}
+
+// ---------- 시원한 물소리 (음원 파일 없이 직접 만들어요) ----------
+let soundOn = true;
+try { soundOn = localStorage.getItem(SOUND_KEY) !== 'off'; } catch (e) {}
+let audioCtx = null;
+
+function getAudio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!audioCtx) audioCtx = new AC();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+// level: 0(비었음) ~ 1(가득) — 찰수록 소리가 높아져요
+function playWater(level) {
+  if (!soundOn) return;
+  const ctx = getAudio();
+  if (!ctx) return;
+  const t0 = ctx.currentTime + 0.22; // 떨어지는 물방울이 닿는 순간에 맞춰요
+
+  const master = ctx.createGain();
+  master.gain.value = 0.55;
+  master.connect(ctx.destination);
+
+  // 1) "찰랑" — 물 튀는 소리 (거르고 다듬은 잡음)
+  const len = Math.floor(ctx.sampleRate * 0.7);
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.Q.value = 0.9;
+  band.frequency.setValueAtTime(3200, t0);
+  band.frequency.exponentialRampToValueAtTime(700, t0 + 0.55);
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.0001, t0);
+  ng.gain.exponentialRampToValueAtTime(0.22, t0 + 0.025);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
+  noise.connect(band).connect(ng).connect(master);
+  noise.start(t0);
+  noise.stop(t0 + 0.7);
+
+  // 2) "퐁" — 물방울이 수면에 닿는 소리
+  plink(ctx, master, t0, 380 + level * 320, 0.5, 0.16);
+
+  // 3) "보글보글" — 작은 방울 소리 몇 개
+  const base = 650 + level * 650;
+  const n = 4 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < n; i++) {
+    const t = t0 + 0.06 + i * 0.065 + Math.random() * 0.04;
+    plink(ctx, master, t, base * (0.75 + Math.random() * 0.7), 0.18 + Math.random() * 0.12, 0.08);
+  }
+}
+
+function plink(ctx, out, t, freq, vol, dur) {
+  const o = ctx.createOscillator();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(freq, t);
+  o.frequency.exponentialRampToValueAtTime(freq * 2.3, t + dur * 0.7);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(out);
+  o.start(t);
+  o.stop(t + dur + 0.02);
 }
 
 // ---------- 날짜 도우미 ----------
@@ -54,8 +125,21 @@ const el = {
   todayLast: $('todayLast'), removeBtn: $('removeBtn'), addBtn: $('addBtn'),
   tabWeek: $('tabWeek'), tabMonth: $('tabMonth'), prevBtn: $('prevBtn'), nextBtn: $('nextBtn'),
   periodTitle: $('periodTitle'), chart: $('chart'), summary: $('summary'),
-  dialog: $('confirmDialog'), okBtn: $('okBtn'), cancelBtn: $('cancelBtn')
+  dialog: $('confirmDialog'), okBtn: $('okBtn'), cancelBtn: $('cancelBtn'),
+  soundBtn: $('soundBtn')
 };
+
+function renderSound() {
+  el.soundBtn.setAttribute('aria-pressed', String(soundOn));
+  el.soundBtn.setAttribute('aria-label', soundOn ? '물소리 켜짐' : '물소리 꺼짐');
+}
+el.soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem(SOUND_KEY, soundOn ? 'on' : 'off'); } catch (e) {}
+  renderSound();
+  if (soundOn) playWater(0.3); // 켰을 때 살짝 들려 줘요
+});
+renderSound();
 
 const WAVE_SVG = '<svg class="wave wave-front" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true">' +
   '<path d="M0 10 Q12.5 2 25 10 T50 10 T75 10 T100 10 T125 10 T150 10 T175 10 T200 10 V20 H0 Z"/></svg>';
@@ -209,6 +293,7 @@ el.addBtn.addEventListener('click', () => {
   saveRecords(records);
   saveLast(Date.now());
   if (navigator.vibrate) navigator.vibrate(30);
+  playWater(Math.min(1, records[k] / GOAL));
   renderAll();
   splash(true);
   el.todayCups.parentElement.classList.remove('pop');
