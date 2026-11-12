@@ -142,6 +142,8 @@
   - 저장소: https://github.com/hwasoon4909-debug/my-app (공개, main 브랜치)
   - 앱 주소: https://hwasoon4909-debug.github.io/my-app/
   - 올릴 때 작성자: 이 폴더에만 GitHub 아이디와 GitHub 비공개 메일(noreply)로 설정함
+  - 올리는 명령 (그냥 `git push`는 비밀번호를 물어서 멈춤):
+    `git -c credential.helper= -c "credential.helper=!gh auth git-credential" push`
 - 2026-11-12: 막대 → 출렁이는 물통으로 바꿈 (캐시 v2), GitHub에 올림
 
 ### 휴대폰에 설치하는 법
