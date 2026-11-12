@@ -50,12 +50,45 @@ function agoText(t) {
 const $ = (id) => document.getElementById(id);
 const el = {
   todayDate: $('todayDate'), todayCups: $('todayCups'), todayMl: $('todayMl'),
-  progress: $('progress'), progressFill: $('progressFill'), todayMsg: $('todayMsg'),
+  progress: $('progress'), water: $('water'), bottleBody: $('bottleBody'), todayMsg: $('todayMsg'),
   todayLast: $('todayLast'), removeBtn: $('removeBtn'), addBtn: $('addBtn'),
   tabWeek: $('tabWeek'), tabMonth: $('tabMonth'), prevBtn: $('prevBtn'), nextBtn: $('nextBtn'),
   periodTitle: $('periodTitle'), chart: $('chart'), summary: $('summary'),
   dialog: $('confirmDialog'), okBtn: $('okBtn'), cancelBtn: $('cancelBtn')
 };
+
+const WAVE_SVG = '<svg class="wave wave-front" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true">' +
+  '<path d="M0 10 Q12.5 2 25 10 T50 10 T75 10 T100 10 T125 10 T150 10 T175 10 T200 10 V20 H0 Z"/></svg>';
+
+// 한 잔 누르면: 물방울이 떨어지고, 물이 출렁이고, 거품이 올라와요
+function splash(strong) {
+  const w = el.water;
+  w.classList.remove('slosh');
+  void w.offsetWidth;
+  w.classList.add('slosh');
+
+  const body = el.bottleBody;
+  const waterTop = body.clientHeight - (w.offsetHeight - 30);
+  if (strong) {
+    const drop = document.createElement('span');
+    drop.className = 'drop';
+    drop.style.setProperty('--fall', Math.max(20, waterTop) + 'px');
+    body.appendChild(drop);
+    setTimeout(() => drop.remove(), 500);
+  }
+  const n = strong ? 6 : 3;
+  for (let i = 0; i < n; i++) {
+    const b = document.createElement('span');
+    const s = 4 + Math.random() * 7;
+    b.className = 'bubble';
+    b.style.width = b.style.height = s + 'px';
+    b.style.left = (15 + Math.random() * 65) + '%';
+    b.style.animationDelay = (0.25 + i * 0.09) + 's';
+    b.style.setProperty('--rise', -Math.max(30, body.clientHeight - waterTop - 10) + 'px');
+    body.appendChild(b);
+    setTimeout(() => b.remove(), 2200);
+  }
+}
 
 let view = 'week'; // 'week' 또는 'month'
 let offset = 0;    // 0 = 이번 주/이번 달, -1 = 지난 주/지난 달
@@ -69,8 +102,11 @@ function renderToday() {
   el.todayDate.textContent = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + DAY_NAMES[now.getDay()] + '요일';
   el.todayCups.textContent = cups;
   el.todayMl.textContent = (cups * ML_PER_CUP) + ' mL 마셨어요';
-  el.progressFill.style.width = Math.min(100, (cups / GOAL) * 100) + '%';
-  el.progress.setAttribute('aria-valuenow', String(cups));
+  // 물통: 목표(8잔)면 거의 가득 (물결이 보이도록 94%까지)
+  const level = Math.min(1, cups / GOAL) * 94;
+  el.water.style.height = 'calc(' + level + '% + 30px)';
+  el.water.classList.toggle('empty', cups === 0);
+  el.progress.setAttribute('aria-valuenow', String(Math.min(cups, GOAL)));
 
   if (cups === 0) el.todayMsg.textContent = '오늘 첫 잔을 마셔 볼까요?';
   else if (cups < GOAL) el.todayMsg.textContent = '목표까지 ' + (GOAL - cups) + '잔 남았어요';
@@ -109,14 +145,20 @@ function renderWeek() {
   days.forEach((d) => {
     const k = dateKey(d);
     const c = records[k] || 0;
+    const h = c ? (c / max) * 92 : 0;
     html += '<div class="bar-col' + (k === todayKey ? ' is-today' : '') + '">' +
       '<span class="bar-num">' + (c || '') + '</span>' +
-      '<div class="bar-track"><div class="bar' + (c < GOAL ? ' low' : '') + '" style="height:' + (c / max * 100) + '%"></div></div>' +
+      '<div class="bar-track"><div class="bar' + (c < GOAL ? ' low' : '') + (c ? '' : ' zero') + '" data-h="' + h + '">' +
+      WAVE_SVG + '</div></div>' +
       '<span class="bar-day">' + DAY_NAMES[d.getDay()] + '</span></div>';
   });
   html += '</div>';
   el.chart.innerHTML = html;
   el.summary.innerHTML = summaryHtml(days, records);
+  // 작은 물통에 물이 차오르게: 0에서 시작해 높이로
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.chart.querySelectorAll('.bar').forEach((b) => { b.style.height = b.dataset.h + '%'; });
+  }));
 }
 
 function renderMonth() {
@@ -167,6 +209,7 @@ el.addBtn.addEventListener('click', () => {
   saveLast(Date.now());
   if (navigator.vibrate) navigator.vibrate(30);
   renderAll();
+  splash(true);
   el.todayCups.parentElement.classList.remove('pop');
   void el.todayCups.parentElement.offsetWidth;
   el.todayCups.parentElement.classList.add('pop');
@@ -180,6 +223,7 @@ function removeOne() {
   if (records[k] <= 0) { delete records[k]; saveLast(0); }
   saveRecords(records);
   renderAll();
+  splash(false);
 }
 
 // 지우기 전에 "정말 지울까요?" 묻기

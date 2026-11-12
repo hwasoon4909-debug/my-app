@@ -23,12 +23,25 @@
     <!-- 오늘의 기록 -->
     <section class="card today" aria-label="오늘의 기록">
       <p class="today-date" id="todayDate"></p>
-      <p class="today-count"><span id="todayCups">0</span><span class="unit">잔</span></p>
-      <p class="today-ml" id="todayMl">0 mL</p>
-      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="8" id="progress">
-        <div class="progress-fill" id="progressFill"></div>
+      <div class="today-main">
+        <!-- 출렁이는 물통 -->
+        <div class="bottle" id="progress" role="progressbar" aria-label="오늘 목표까지" aria-valuemin="0" aria-valuemax="8">
+          <div class="bottle-cap"></div>
+          <div class="bottle-neck"></div>
+          <div class="bottle-body" id="bottleBody">
+            <div class="water" id="water">
+              <svg class="wave wave-back" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 10 Q12.5 2 25 10 T50 10 T75 10 T100 10 T125 10 T150 10 T175 10 T200 10 V20 H0 Z"/></svg>
+              <svg class="wave wave-front" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 10 Q12.5 2 25 10 T50 10 T75 10 T100 10 T125 10 T150 10 T175 10 T200 10 V20 H0 Z"/></svg>
+            </div>
+            <div class="bottle-marks" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="today-numbers">
+          <p class="today-count"><span id="todayCups">0</span><span class="unit">잔</span></p>
+          <p class="today-ml" id="todayMl">0 mL</p>
+          <p class="today-msg" id="todayMsg"></p>
+        </div>
       </div>
-      <p class="today-msg" id="todayMsg"></p>
       <p class="today-last" id="todayLast"></p>
       <button type="button" class="btn-sub" id="removeBtn">잘못 눌렀어요 (한 잔 빼기)</button>
     </section>
