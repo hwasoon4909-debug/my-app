@@ -1,12 +1,12 @@
 /* 디자인 가이드 (CLAUDE.md 4번) */
 :root {
-  --bg: #F0FAF8;
+  --bg: #F0F7FD;
   --card: #FFFFFF;
-  --text: #12343B;
-  --text-soft: #46666B;
-  --sub: #CDEFEA;
-  --accent: #0B7480;
-  --accent-dark: #075C66;
+  --text: #0F2B46;
+  --text-soft: #47627D;
+  --sub: #D3E8FA;
+  --accent: #1769C2;
+  --accent-dark: #0F4F96;
   --danger: #B3261E;
   --radius: 8px;
   --tap: 48px;
@@ -53,7 +53,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: var(--card);
   border-radius: var(--radius);
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(18, 52, 59, 0.08);
+  box-shadow: 0 1px 3px rgba(15, 43, 70, 0.08);
 }
 
 /* 오늘의 기록 */
@@ -80,12 +80,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* ----- 출렁이는 물통 ----- */
 .bottle { display: flex; flex-direction: column; align-items: center; flex: none; }
 .bottle-cap { width: 40px; height: 12px; background: var(--accent-dark); border-radius: 4px 4px 2px 2px; }
-.bottle-neck { width: 46px; height: 12px; border: 3px solid #A9DFDA; border-bottom: 0; border-top: 0; background: #fff; }
+.bottle-neck { width: 46px; height: 12px; border: 3px solid #A9D3F2; border-bottom: 0; border-top: 0; background: #fff; }
 .bottle-body {
   position: relative;
   width: 104px;
   height: 160px;
-  border: 3px solid #A9DFDA;
+  border: 3px solid #A9D3F2;
   border-radius: 22px 22px 18px 18px;
   background: #fff;
   overflow: hidden;
@@ -95,7 +95,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: absolute;
   right: 8px; top: 0; bottom: 0;
   width: 10px;
-  background: repeating-linear-gradient(to top, transparent 0 calc(25% - 2px), rgba(11,116,128,0.25) calc(25% - 2px) 25%);
+  background: repeating-linear-gradient(to top, transparent 0 calc(25% - 2px), rgba(23,105,194,0.25) calc(25% - 2px) 25%);
   pointer-events: none;
   z-index: 2;
 }
@@ -105,7 +105,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   width: 130%;
   bottom: -30px;
   height: 30px;
-  background: linear-gradient(#3BB5BE, #0B7480);
+  background: linear-gradient(#4FB3F0, #1769C2);
   transition: height 0.9s cubic-bezier(0.34, 1.4, 0.64, 1);
   transform-origin: 50% 0;
 }
@@ -118,8 +118,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   height: 12px;
   transition: opacity 0.3s;
 }
-.wave-front { fill: #3BB5BE; animation: drift 3s linear infinite; }
-.wave-back  { fill: #8ED9DA; top: -14px; height: 15px; animation: drift 5s linear infinite reverse; }
+.wave-front { fill: #4FB3F0; animation: drift 3s linear infinite; }
+.wave-back  { fill: #A9D8F7; top: -14px; height: 15px; animation: drift 5s linear infinite reverse; }
 @keyframes drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 /* 한 잔 누르면 출렁 */
@@ -156,7 +156,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   width: 10px;
   height: 14px;
   margin-left: -5px;
-  background: #3BB5BE;
+  background: #4FB3F0;
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   z-index: 3;
   animation: fall 0.45s ease-in forwards;
@@ -195,7 +195,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   font-weight: 600;
   color: var(--text-soft);
 }
-.tab[aria-selected="true"] { background: var(--card); color: var(--accent-dark); box-shadow: 0 1px 2px rgba(18,52,59,0.12); }
+.tab[aria-selected="true"] { background: var(--card); color: var(--accent-dark); box-shadow: 0 1px 2px rgba(15,43,70,0.12); }
 
 .period {
   display: flex;
@@ -233,7 +233,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   max-width: 34px;
   height: 100px;
   background: #fff;
-  border: 2px solid #A9DFDA;
+  border: 2px solid #A9D3F2;
   border-radius: 10px 10px 8px 8px;
   overflow: hidden;
 }
@@ -241,13 +241,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: absolute;
   left: 0; right: 0; bottom: 0;
   height: 0;
-  background: linear-gradient(#3BB5BE, #0B7480);
+  background: linear-gradient(#4FB3F0, #1769C2);
   transition: height 0.9s cubic-bezier(0.34, 1.3, 0.64, 1);
 }
-.bar.low { background: linear-gradient(#7FCFD2, #3BB5BE); }
+.bar.low { background: linear-gradient(#8CCBF3, #4FB3F0); }
 .bar .wave { top: -5px; height: 6px; }
-.bar .wave-front { fill: #3BB5BE; animation-duration: 2.2s; }
-.bar.low .wave-front { fill: #7FCFD2; }
+.bar .wave-front { fill: #4FB3F0; animation-duration: 2.2s; }
+.bar.low .wave-front { fill: #8CCBF3; }
 .bar.zero .wave { opacity: 0; }
 .bar-day { font-size: 15px; margin-top: 4px; color: var(--text-soft); }
 .bar-col.is-today .bar-day { color: var(--accent-dark); font-weight: 700; }
@@ -267,12 +267,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
   color: var(--text-soft);
 }
 .m-cell .m-cups { font-size: 15px; font-weight: 700; color: var(--text); }
-.m-cell.lv1 { background: #DDF3F0; }
-.m-cell.lv2 { background: #A9DFDA; }
-.m-cell.lv3 { background: #5FB3BB; }
+.m-cell.lv1 { background: #DCEEFC; }
+.m-cell.lv2 { background: #A9D3F2; }
+.m-cell.lv3 { background: #5AA8E6; }
 .m-cell.lv4 { background: var(--accent); color: #fff; }
 .m-cell.lv3 .m-cups, .m-cell.lv4 .m-cups { color: #fff; }
-.m-cell.lv3 { color: #0B2E33; }
+.m-cell.lv3 { color: #0B2540; }
 .m-cell.is-today { outline: 2px solid var(--accent-dark); outline-offset: -2px; }
 .m-empty { background: transparent; }
 
@@ -301,7 +301,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   color: #fff;
   font-size: 24px;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(11, 116, 128, 0.3);
+  box-shadow: 0 2px 6px rgba(23, 105, 194, 0.3);
 }
 .btn-main:active { background: var(--accent-dark); transform: scale(0.98); }
 
@@ -320,7 +320,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   width: min(340px, calc(100% - 32px));
   color: var(--text);
 }
-.dialog::backdrop { background: rgba(18, 52, 59, 0.45); }
+.dialog::backdrop { background: rgba(15, 43, 70, 0.45); }
 .dialog-title { margin: 0 0 4px; font-size: 20px; font-weight: 700; }
 .dialog-text { margin: 0 0 16px; color: var(--text-soft); }
 .dialog-buttons { display: flex; gap: 8px; }

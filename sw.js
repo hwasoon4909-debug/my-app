@@ -1,5 +1,5 @@
 // 파일을 고칠 때마다 VERSION 숫자를 올려 주세요.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const PREFIX = 'my-app-water-';
 const CACHE = PREFIX + VERSION;
 const FILES = [
