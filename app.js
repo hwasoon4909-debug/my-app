@@ -1,10 +1,12 @@
 // 물 한잔 — 기록은 이 기기 안(localStorage)에만 저장해요.
 // 저장 이름은 바꾸지 않아요 (바꾸면 지난 기록이 안 보여요).
-const RECORDS_KEY = 'my-app-water-records'; // { "2026-11-12": 3, ... }
-const LAST_KEY = 'my-app-water-last';       // 마지막으로 마신 시간 (숫자)
-const SOUND_KEY = 'my-app-water-sound';     // 'off'면 소리 끔
-const ML_PER_CUP = 250;
-const GOAL = 8;
+const RECORDS_KEY = 'my-app-water-records';   // { "2026-11-12": 3, ... } 날짜별 잔 수
+const LAST_KEY = 'my-app-water-last';         // 마지막으로 마신 시간 (숫자)
+const SOUND_KEY = 'my-app-water-sound';       // 'off'면 소리 끔
+const SETTINGS_KEY = 'my-app-water-settings'; // { goal: 8, cupMl: 250 }
+const CUP_SIZES = [150, 200, 250, 300, 350, 500];
+const GOAL_MIN = 1;
+const GOAL_MAX = 20;
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
 // ---------- 저장 ----------
@@ -23,6 +25,23 @@ function saveLast(t) {
     else localStorage.removeItem(LAST_KEY);
   } catch (e) {}
 }
+
+// ---------- 설정 (하루 목표 · 한 잔의 양) ----------
+function cleanSettings(s) {
+  const goal = Math.round(Number(s && s.goal));
+  const cupMl = Number(s && s.cupMl);
+  return {
+    goal: goal >= GOAL_MIN && goal <= GOAL_MAX ? goal : 8,
+    cupMl: CUP_SIZES.includes(cupMl) ? cupMl : 250
+  };
+}
+function loadSettings() {
+  try { return cleanSettings(JSON.parse(localStorage.getItem(SETTINGS_KEY))); } catch (e) { return cleanSettings(null); }
+}
+function saveSettings(s) {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch (e) {}
+}
+let settings = loadSettings();
 
 // ---------- 시원한 물소리 (음원 파일 없이 직접 만들어요) ----------
 let soundOn = true;
@@ -116,6 +135,7 @@ function agoText(t) {
   if (h < 24) return h + '시간 ' + (min % 60 ? (min % 60) + '분 ' : '') + '전';
   return Math.floor(h / 24) + '일 전';
 }
+function mlText(ml) { return ml.toLocaleString('ko-KR') + ' mL'; }
 
 // ---------- 화면 요소 ----------
 const $ = (id) => document.getElementById(id);
@@ -125,10 +145,36 @@ const el = {
   todayLast: $('todayLast'), removeBtn: $('removeBtn'), addBtn: $('addBtn'),
   tabWeek: $('tabWeek'), tabMonth: $('tabMonth'), prevBtn: $('prevBtn'), nextBtn: $('nextBtn'),
   periodTitle: $('periodTitle'), chart: $('chart'), summary: $('summary'),
-  dialog: $('confirmDialog'), okBtn: $('okBtn'), cancelBtn: $('cancelBtn'),
-  soundBtn: $('soundBtn')
+  dialog: $('confirmDialog'), confirmTitle: $('confirmTitle'), confirmText: $('confirmText'),
+  okBtn: $('okBtn'), cancelBtn: $('cancelBtn'),
+  soundBtn: $('soundBtn'),
+  settingsBtn: $('settingsBtn'), settingsDialog: $('settingsDialog'), settingsClose: $('settingsClose'),
+  goalMinus: $('goalMinus'), goalPlus: $('goalPlus'), goalValue: $('goalValue'),
+  cupChips: $('cupChips'), goalTotal: $('goalTotal'),
+  exportBtn: $('exportBtn'), importBtn: $('importBtn'), importFile: $('importFile'), backupStatus: $('backupStatus')
 };
 
+// ---------- 묻는 창 ("정말 지울까요?" 등) ----------
+let askResolve = null;
+function ask(title, text, okLabel) {
+  if (typeof el.dialog.showModal !== 'function') {
+    return Promise.resolve(window.confirm(title + '\n' + text));
+  }
+  el.confirmTitle.textContent = title;
+  el.confirmText.textContent = text;
+  el.okBtn.textContent = okLabel;
+  el.dialog.showModal();
+  return new Promise((resolve) => { askResolve = resolve; });
+}
+function finishAsk(answer) {
+  if (el.dialog.open) el.dialog.close();
+  if (askResolve) { const r = askResolve; askResolve = null; r(answer); }
+}
+el.okBtn.addEventListener('click', () => finishAsk(true));
+el.cancelBtn.addEventListener('click', () => finishAsk(false));
+el.dialog.addEventListener('close', () => finishAsk(false)); // 뒤로가기 · Esc
+
+// ---------- 소리 켜기/끄기 ----------
 function renderSound() {
   el.soundBtn.setAttribute('aria-pressed', String(soundOn));
   el.soundBtn.setAttribute('aria-label', soundOn ? '물소리 켜짐' : '물소리 꺼짐');
@@ -180,21 +226,23 @@ let offset = 0;    // 0 = 이번 주/이번 달, -1 = 지난 주/지난 달
 // ---------- 오늘의 기록 ----------
 function renderToday() {
   const now = new Date();
+  const goal = settings.goal;
   const records = loadRecords();
   const cups = records[dateKey(now)] || 0;
 
   el.todayDate.textContent = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 (' + DAY_NAMES[now.getDay()] + ')';
   el.todayCups.textContent = cups;
-  el.todayMl.textContent = (cups * ML_PER_CUP).toLocaleString('ko-KR') + ' mL';
-  // 물통: 목표(8잔)면 거의 가득 (물결이 보이도록 94%까지)
-  const level = Math.min(1, cups / GOAL) * 94;
+  el.todayMl.textContent = mlText(cups * settings.cupMl);
+  // 물통: 목표면 거의 가득 (물결이 보이도록 94%까지)
+  const level = Math.min(1, cups / goal) * 94;
   el.water.style.height = 'calc(' + level + '% + 30px)';
   el.water.classList.toggle('empty', cups === 0);
-  el.progress.setAttribute('aria-valuenow', String(Math.min(cups, GOAL)));
+  el.progress.setAttribute('aria-valuemax', String(goal));
+  el.progress.setAttribute('aria-valuenow', String(Math.min(cups, goal)));
 
   if (cups === 0) el.todayMsg.textContent = '첫 잔 시작해 볼까요?';
-  else if (cups < GOAL / 2) el.todayMsg.textContent = (GOAL - cups) + '잔만 더 마시면 돼요';
-  else if (cups < GOAL) el.todayMsg.textContent = '거의 다 왔어요! ' + (GOAL - cups) + '잔 남음';
+  else if (cups < goal / 2) el.todayMsg.textContent = (goal - cups) + '잔만 더 마시면 돼요';
+  else if (cups < goal) el.todayMsg.textContent = '거의 다 왔어요! ' + (goal - cups) + '잔 남음';
   else el.todayMsg.textContent = '목표 달성! 오늘 촉촉해요';
 
   const last = loadLast();
@@ -209,13 +257,14 @@ function summaryHtml(days, records) {
   const past = days.filter((d) => d <= today);
   const total = past.reduce((s, d) => s + (records[dateKey(d)] || 0), 0);
   const avg = past.length ? total / past.length : 0;
-  const goalDays = past.filter((d) => (records[dateKey(d)] || 0) >= GOAL).length;
+  const goalDays = past.filter((d) => (records[dateKey(d)] || 0) >= settings.goal).length;
   return '<div><dt>합계</dt><dd>' + total + '잔</dd></div>' +
          '<div><dt>하루 평균</dt><dd>' + (Math.round(avg * 10) / 10) + '잔</dd></div>' +
          '<div><dt>목표 달성</dt><dd>' + goalDays + '일</dd></div>';
 }
 
 function renderWeek() {
+  const goal = settings.goal;
   const records = loadRecords();
   const todayKey = dateKey(new Date());
   const start = addDays(mondayOf(new Date()), offset * 7);
@@ -225,7 +274,7 @@ function renderWeek() {
   el.periodTitle.textContent = offset === 0 ? '이번 주' :
     (start.getMonth() + 1) + '/' + start.getDate() + ' ~ ' + (end.getMonth() + 1) + '/' + end.getDate();
 
-  const max = Math.max(GOAL, ...days.map((d) => records[dateKey(d)] || 0));
+  const max = Math.max(goal, ...days.map((d) => records[dateKey(d)] || 0));
   let html = '<div class="week">';
   days.forEach((d) => {
     const k = dateKey(d);
@@ -233,7 +282,7 @@ function renderWeek() {
     const h = c ? (c / max) * 92 : 0;
     html += '<div class="bar-col' + (k === todayKey ? ' is-today' : '') + '">' +
       '<span class="bar-num">' + (c || '') + '</span>' +
-      '<div class="bar-track"><div class="bar' + (c < GOAL ? ' low' : '') + (c ? '' : ' zero') + '" data-h="' + h + '">' +
+      '<div class="bar-track"><div class="bar' + (c < goal ? ' low' : '') + (c ? '' : ' zero') + '" data-h="' + h + '">' +
       WAVE_SVG + '</div></div>' +
       '<span class="bar-day">' + DAY_NAMES[d.getDay()] + '</span></div>';
   });
@@ -247,6 +296,7 @@ function renderWeek() {
 }
 
 function renderMonth() {
+  const goal = settings.goal;
   const records = loadRecords();
   const now = new Date();
   const todayKey = dateKey(now);
@@ -264,9 +314,9 @@ function renderMonth() {
     const k = dateKey(d);
     const c = records[k] || 0;
     let lv = '';
-    if (c >= GOAL) lv = ' lv4';
-    else if (c >= GOAL * 0.75) lv = ' lv3';
-    else if (c >= GOAL * 0.4) lv = ' lv2';
+    if (c >= goal) lv = ' lv4';
+    else if (c >= goal * 0.75) lv = ' lv3';
+    else if (c >= goal * 0.4) lv = ' lv2';
     else if (c > 0) lv = ' lv1';
     html += '<div class="m-cell' + lv + (k === todayKey ? ' is-today' : '') + '" aria-label="' + d.getDate() + '일 ' + c + '잔">' +
       '<span>' + d.getDate() + '</span><span class="m-cups">' + (c || '') + '</span></div>';
@@ -293,7 +343,7 @@ el.addBtn.addEventListener('click', () => {
   saveRecords(records);
   saveLast(Date.now());
   if (navigator.vibrate) navigator.vibrate(30);
-  playWater(Math.min(1, records[k] / GOAL));
+  playWater(Math.min(1, records[k] / settings.goal));
   renderAll();
   splash(true);
   el.todayCups.parentElement.classList.remove('pop');
@@ -314,16 +364,118 @@ function removeOne() {
 
 // 지우기 전에 "정말 지울까요?" 묻기
 el.removeBtn.addEventListener('click', () => {
-  if (typeof el.dialog.showModal === 'function') el.dialog.showModal();
-  else if (window.confirm('정말 지울까요?')) removeOne();
+  ask('정말 지울까요?', '오늘 기록에서 한 잔을 뺄게요.\n지우면 되돌릴 수 없어요.', '지우기')
+    .then((yes) => { if (yes) removeOne(); });
 });
-el.okBtn.addEventListener('click', () => { el.dialog.close(); removeOne(); });
-el.cancelBtn.addEventListener('click', () => el.dialog.close());
 
 el.tabWeek.addEventListener('click', () => { view = 'week'; offset = 0; renderStats(); });
 el.tabMonth.addEventListener('click', () => { view = 'month'; offset = 0; renderStats(); });
 el.prevBtn.addEventListener('click', () => { offset -= 1; renderStats(); });
 el.nextBtn.addEventListener('click', () => { if (offset < 0) { offset += 1; renderStats(); } });
+
+// ---------- 설정: 하루 목표 · 한 잔의 양 ----------
+function renderSettings() {
+  el.goalValue.textContent = settings.goal;
+  el.goalMinus.disabled = settings.goal <= GOAL_MIN;
+  el.goalPlus.disabled = settings.goal >= GOAL_MAX;
+  el.cupChips.innerHTML = CUP_SIZES.map((ml) =>
+    '<button type="button" class="chip" role="radio" aria-checked="' + (ml === settings.cupMl) + '" data-ml="' + ml + '">' + ml + ' mL</button>'
+  ).join('');
+  el.goalTotal.textContent = '하루 ' + mlText(settings.goal * settings.cupMl) + '를 목표로 해요';
+}
+function changeSettings(next) {
+  settings = cleanSettings(next);
+  saveSettings(settings);
+  renderSettings();
+  renderAll();
+}
+el.goalMinus.addEventListener('click', () => changeSettings({ goal: settings.goal - 1, cupMl: settings.cupMl }));
+el.goalPlus.addEventListener('click', () => changeSettings({ goal: settings.goal + 1, cupMl: settings.cupMl }));
+el.cupChips.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (chip) changeSettings({ goal: settings.goal, cupMl: Number(chip.dataset.ml) });
+});
+el.settingsBtn.addEventListener('click', () => {
+  renderSettings();
+  el.backupStatus.textContent = '';
+  if (typeof el.settingsDialog.showModal === 'function') el.settingsDialog.showModal();
+});
+el.settingsClose.addEventListener('click', () => el.settingsDialog.close());
+
+// ---------- 기록 백업 · 복원 ----------
+function backupData() {
+  return {
+    app: '물 한잔',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    settings: settings,
+    records: loadRecords(),
+    last: loadLast()
+  };
+}
+
+el.exportBtn.addEventListener('click', () => {
+  const name = '물한잔-백업-' + dateKey(new Date()) + '.json';
+  const text = JSON.stringify(backupData(), null, 2);
+  const blob = new Blob([text], { type: 'application/json' });
+  const done = () => { el.backupStatus.textContent = '백업 파일을 만들었어요: ' + name; };
+  const download = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    done();
+  };
+  // 휴대폰에서는 공유 창으로 열어서 드라이브 · 파일 앱 등에 저장할 수 있어요
+  let file = null;
+  try { file = new File([blob], name, { type: 'application/json' }); } catch (e) {}
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: '물 한잔 백업' })
+      .then(done)
+      .catch((err) => { if (!err || err.name !== 'AbortError') download(); });
+  } else {
+    download();
+  }
+});
+
+el.importBtn.addEventListener('click', () => { el.importFile.value = ''; el.importFile.click(); });
+
+function validRecords(r) {
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return null;
+  const out = {};
+  for (const k of Object.keys(r)) {
+    const v = r[k];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !Number.isInteger(v) || v < 0 || v > 200) return null;
+    if (v > 0) out[k] = v;
+  }
+  return out;
+}
+
+el.importFile.addEventListener('change', () => {
+  const f = el.importFile.files && el.importFile.files[0];
+  if (!f) return;
+  f.text().then((text) => {
+    let data = null;
+    try { data = JSON.parse(text); } catch (e) {}
+    const records = data && validRecords(data.records);
+    if (!records) { el.backupStatus.textContent = '물 한잔 백업 파일이 아니에요. 다른 파일을 골라 주세요.'; return; }
+    const days = Object.keys(records).length;
+    return ask('기록을 불러올까요?',
+      '백업 파일의 ' + days + '일치 기록으로 바꿔요.\n지금 이 휴대폰에 있는 기록은 사라져요.',
+      '불러오기')
+      .then((yes) => {
+        if (!yes) return;
+        saveRecords(records);
+        saveLast(Number(data.last) || 0);
+        if (data.settings) changeSettings(data.settings);
+        renderSettings();
+        renderAll();
+        el.backupStatus.textContent = days + '일치 기록을 불러왔어요.';
+      });
+  }).catch(() => { el.backupStatus.textContent = '파일을 읽지 못했어요. 다시 해 볼까요?'; });
+});
 
 // 앱을 다시 열거나 날짜가 바뀌면 화면을 새로 그려요
 document.addEventListener('visibilitychange', () => { if (!document.hidden) renderAll(); });

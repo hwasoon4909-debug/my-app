@@ -23,10 +23,12 @@
       <h1>물 한잔</h1>
     </div>
     <div class="top-right">
-      <p class="date-pill" id="todayDate"></p>
       <button type="button" class="btn-sound" id="soundBtn" aria-pressed="true" aria-label="물소리 켜짐">
         <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-on"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-off"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" class="btn-sound" id="settingsBtn" aria-label="설정">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-gear"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3L5.5 5.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
       </button>
     </div>
   </header>
@@ -34,7 +36,7 @@
   <main class="content">
     <!-- 오늘의 기록 -->
     <section class="card today" aria-label="오늘의 기록">
-      <p class="card-label">오늘 마신 물</p>
+      <p class="card-label">오늘 마신 물 <span class="card-date" id="todayDate"></span></p>
       <div class="today-main">
         <!-- 출렁이는 물통 -->
         <div class="bottle" id="progress" role="progressbar" aria-label="오늘 목표까지" aria-valuemin="0" aria-valuemax="8">
@@ -83,10 +85,44 @@
     <button type="button" class="btn-main" id="addBtn"><span class="plus" aria-hidden="true">+</span>한 잔 마셨어요</button>
   </footer>
 
-  <!-- 지우기 전에 묻는 창 -->
+  <!-- 설정: 하루 목표 · 한 잔의 양 · 기록 백업 -->
+  <dialog id="settingsDialog" class="dialog sheet" aria-labelledby="settingsTitle">
+    <div class="sheet-head">
+      <p class="dialog-title" id="settingsTitle">설정</p>
+      <button type="button" class="btn-close" id="settingsClose" aria-label="닫기">✕</button>
+    </div>
+
+    <section class="set-group">
+      <p class="set-label">하루 목표</p>
+      <div class="stepper">
+        <button type="button" class="btn-step" id="goalMinus" aria-label="목표 한 잔 줄이기">−</button>
+        <p class="step-value"><span id="goalValue">8</span>잔</p>
+        <button type="button" class="btn-step" id="goalPlus" aria-label="목표 한 잔 늘리기">+</button>
+      </div>
+    </section>
+
+    <section class="set-group">
+      <p class="set-label">한 잔의 양</p>
+      <div class="chips" id="cupChips" role="radiogroup" aria-label="한 잔의 양"></div>
+      <p class="set-total" id="goalTotal"></p>
+    </section>
+
+    <section class="set-group">
+      <p class="set-label">기록 백업</p>
+      <p class="set-help">휴대폰을 바꾸거나 앱을 다시 설치할 때를 대비해 기록을 파일로 저장해 두세요.</p>
+      <div class="backup-buttons">
+        <button type="button" class="btn-line" id="exportBtn">파일로 저장하기</button>
+        <button type="button" class="btn-line" id="importBtn">파일에서 불러오기</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <p class="set-status" id="backupStatus" role="status"></p>
+    </section>
+  </dialog>
+
+  <!-- 지우기 · 불러오기 전에 묻는 창 -->
   <dialog id="confirmDialog" class="dialog">
-    <p class="dialog-title">정말 지울까요?</p>
-    <p class="dialog-text">오늘 기록에서 한 잔을 뺄게요.<br>지우면 되돌릴 수 없어요.</p>
+    <p class="dialog-title" id="confirmTitle">정말 지울까요?</p>
+    <p class="dialog-text" id="confirmText"></p>
     <div class="dialog-buttons">
       <button type="button" class="btn-cancel" id="cancelBtn">취소</button>
       <button type="button" class="btn-danger" id="okBtn">지우기</button>
