@@ -99,21 +99,22 @@ function renderToday() {
   const records = loadRecords();
   const cups = records[dateKey(now)] || 0;
 
-  el.todayDate.textContent = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + DAY_NAMES[now.getDay()] + '요일';
+  el.todayDate.textContent = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 (' + DAY_NAMES[now.getDay()] + ')';
   el.todayCups.textContent = cups;
-  el.todayMl.textContent = (cups * ML_PER_CUP) + ' mL 마셨어요';
+  el.todayMl.textContent = (cups * ML_PER_CUP).toLocaleString('ko-KR') + ' mL';
   // 물통: 목표(8잔)면 거의 가득 (물결이 보이도록 94%까지)
   const level = Math.min(1, cups / GOAL) * 94;
   el.water.style.height = 'calc(' + level + '% + 30px)';
   el.water.classList.toggle('empty', cups === 0);
   el.progress.setAttribute('aria-valuenow', String(Math.min(cups, GOAL)));
 
-  if (cups === 0) el.todayMsg.textContent = '오늘 첫 잔을 마셔 볼까요?';
-  else if (cups < GOAL) el.todayMsg.textContent = '목표까지 ' + (GOAL - cups) + '잔 남았어요';
-  else el.todayMsg.textContent = '오늘 목표 ' + GOAL + '잔 달성! 잘했어요';
+  if (cups === 0) el.todayMsg.textContent = '첫 잔 시작해 볼까요?';
+  else if (cups < GOAL / 2) el.todayMsg.textContent = (GOAL - cups) + '잔만 더 마시면 돼요';
+  else if (cups < GOAL) el.todayMsg.textContent = '거의 다 왔어요! ' + (GOAL - cups) + '잔 남음';
+  else el.todayMsg.textContent = '목표 달성! 오늘 촉촉해요';
 
   const last = loadLast();
-  el.todayLast.textContent = last ? '마지막 한 잔: ' + timeText(last) + ' · ' + agoText(last) : '';
+  el.todayLast.textContent = last ? '마지막 한 잔 · ' + agoText(last) + ' (' + timeText(last) + ')' : '아직 기록이 없어요';
   el.removeBtn.disabled = cups === 0;
 }
 

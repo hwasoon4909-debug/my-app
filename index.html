@@ -12,17 +12,23 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./icon-192.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <!-- 글씨체: Pretendard (인터넷이 안 되면 휴대폰 기본 글씨체로 보여요) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <header class="top">
-    <h1>물 한잔</h1>
+    <div>
+      <p class="hello">오늘도 촉촉하게</p>
+      <h1>물 한잔</h1>
+    </div>
+    <p class="date-pill" id="todayDate"></p>
   </header>
 
   <main class="content">
     <!-- 오늘의 기록 -->
     <section class="card today" aria-label="오늘의 기록">
-      <p class="today-date" id="todayDate"></p>
+      <p class="card-label">오늘 마신 물</p>
       <div class="today-main">
         <!-- 출렁이는 물통 -->
         <div class="bottle" id="progress" role="progressbar" aria-label="오늘 목표까지" aria-valuemin="0" aria-valuemax="8">
@@ -42,15 +48,20 @@
           <p class="today-msg" id="todayMsg"></p>
         </div>
       </div>
-      <p class="today-last" id="todayLast"></p>
-      <button type="button" class="btn-sub" id="removeBtn">잘못 눌렀어요 (한 잔 빼기)</button>
+      <div class="today-foot">
+        <p class="today-last" id="todayLast"></p>
+        <button type="button" class="btn-sub" id="removeBtn">한 잔 빼기</button>
+      </div>
     </section>
 
     <!-- 주 / 월 기록 -->
     <section class="card stats" aria-label="주, 월 기록">
-      <div class="tabs" role="tablist">
-        <button type="button" role="tab" class="tab" id="tabWeek" aria-selected="true">주</button>
-        <button type="button" role="tab" class="tab" id="tabMonth" aria-selected="false">월</button>
+      <div class="stats-head">
+        <p class="card-label">기록 모아보기</p>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" class="tab" id="tabWeek" aria-selected="true">주</button>
+          <button type="button" role="tab" class="tab" id="tabMonth" aria-selected="false">월</button>
+        </div>
       </div>
       <div class="period">
         <button type="button" class="btn-arrow" id="prevBtn" aria-label="이전">‹</button>
@@ -63,13 +74,13 @@
   </main>
 
   <footer class="bottom">
-    <button type="button" class="btn-main" id="addBtn">+ 한 잔 마셨어요</button>
+    <button type="button" class="btn-main" id="addBtn"><span class="plus" aria-hidden="true">+</span>한 잔 마셨어요</button>
   </footer>
 
   <!-- 지우기 전에 묻는 창 -->
   <dialog id="confirmDialog" class="dialog">
     <p class="dialog-title">정말 지울까요?</p>
-    <p class="dialog-text">오늘 기록에서 한 잔을 뺄게요.</p>
+    <p class="dialog-text">오늘 기록에서 한 잔을 뺄게요.<br>지우면 되돌릴 수 없어요.</p>
     <div class="dialog-buttons">
       <button type="button" class="btn-cancel" id="cancelBtn">취소</button>
       <button type="button" class="btn-danger" id="okBtn">지우기</button>
