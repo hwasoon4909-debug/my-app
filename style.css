@@ -20,8 +20,14 @@
 
 * { box-sizing: border-box; }
 
-html { height: 100%; background: var(--bg); }
-body { margin: 0; height: 100%; }
+html {
+  height: 100%;
+  background: var(--bg);
+  overscroll-behavior: none;          /* 당겨도 출렁 · 새로고침 안 되게 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body { margin: 0; height: 100%; overscroll-behavior: none; }
 
 body {
   color: var(--text);
@@ -31,7 +37,8 @@ body {
   letter-spacing: -0.01em;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100vh;   /* 오래된 휴대폰용 */
+  height: 100dvh;  /* 주소창이 생겼다 사라져도 딱 맞게 */
   max-width: 480px;
   margin: 0 auto;
   -webkit-tap-highlight-color: transparent;
@@ -51,7 +58,13 @@ body::before {
     var(--bg);
 }
 
-button { font: inherit; color: inherit; cursor: pointer; letter-spacing: inherit; }
+button {
+  font: inherit; color: inherit; cursor: pointer; letter-spacing: inherit;
+  touch-action: manipulation;          /* 빨리 두 번 눌러도 확대 안 되게 */
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;         /* 길게 눌러도 메뉴 · 선택 안 뜨게 */
+}
+.top, .bottle, .today-count, .week, .month, .summary { -webkit-user-select: none; user-select: none; }
 
 /* ----- 맨 위 ----- */
 .top {
@@ -114,6 +127,9 @@ button { font: inherit; color: inherit; cursor: pointer; letter-spacing: inherit
 .content {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   padding: 8px 16px 16px;
   display: flex;
   flex-direction: column;
@@ -188,10 +204,11 @@ button { font: inherit; color: inherit; cursor: pointer; letter-spacing: inherit
   border-radius: 8px 8px 4px 4px;
 }
 .bottle-neck { width: 48px; height: 10px; border: 3px solid #B9DCF6; border-bottom: 0; border-top: 0; background: rgba(255, 255, 255, 0.7); }
+.content::-webkit-scrollbar { display: none; }
 .bottle-body {
   position: relative;
-  width: 108px;
-  height: 164px;
+  width: var(--bottle-w, 108px);
+  height: var(--bottle-h, 164px);
   border: 3px solid #B9DCF6;
   border-radius: 30px 30px 26px 26px;
   background: linear-gradient(90deg, rgba(244, 250, 255, 0.9), rgba(255, 255, 255, 0.95) 45%, rgba(234, 244, 253, 0.9));
@@ -592,3 +609,64 @@ button { font: inherit; color: inherit; cursor: pointer; letter-spacing: inherit
   font-size: 16px; font-weight: 700;
 }
 .btn-line:active { background: #EEF4FB; }
+
+/* ===== 휴대폰 최적화 ===== */
+
+/* 설정 창: 휴대폰에서는 화면 아래에서 쓱 올라와요 (엄지가 닿기 쉽게) */
+@media (max-width: 600px) {
+  .sheet {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    border-radius: var(--r-card) var(--r-card) 0 0;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    animation: sheet-up 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+  .sheet::before {
+    content: "";
+    display: block;
+    width: 40px; height: 5px;
+    margin: -6px auto 10px;
+    border-radius: var(--r-pill);
+    background: #D3E2F0;
+  }
+}
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* 화면이 짧은 휴대폰: 한 장에 들어가게 조금씩 줄여요 */
+@media (max-height: 820px) {
+  .top { padding-top: calc(10px + env(safe-area-inset-top)); padding-bottom: 4px; }
+  .top h1 { font-size: 26px; }
+  .content { gap: 10px; padding-top: 4px; }
+  .card { padding: 14px 16px; }
+  .bottle-body { --bottle-w: 92px; --bottle-h: 134px; }
+  .bottle-cap { height: 12px; }
+  .today-count { font-size: 60px; }
+  .today-msg { margin-top: 8px !important; }
+  .today-foot { margin-top: 8px; }
+  .period { margin: 6px 0 4px; }
+  .week { height: 122px; }
+  .bar-track { height: 80px; }
+  .summary { margin-top: 10px; }
+  .summary div { padding: 6px 4px; }
+  .summary dd { font-size: 18px; }
+  .bottom { padding-top: 6px; }
+}
+@media (max-height: 700px) {
+  .hello { display: none; }
+  .bottle-body { --bottle-w: 80px; --bottle-h: 108px; }
+  .bottle-neck { height: 6px; }
+  .today-count { font-size: 52px; }
+  .today-count .unit { font-size: 20px; }
+  .week { height: 100px; }
+  .bar-track { height: 62px; }
+  .bar-num, .bar-day { font-size: 14px; }
+}
+
+/* 아주 좁은 휴대폰 (가로 340px 이하) */
+@media (max-width: 340px) {
+  .top, .content, .bottom { padding-left: 12px; padding-right: 12px; }
+  .today-main { gap: 14px; }
+  .week { gap: 4px; }
+  .tab { min-width: 52px; padding: 0 12px; }
+}
