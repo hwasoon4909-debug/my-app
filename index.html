@@ -40,17 +40,22 @@
     <section class="card today" aria-label="오늘의 기록">
       <p class="card-label">오늘 마신 물 <span class="card-date" id="todayDate"></span></p>
       <div class="today-main">
-        <!-- 출렁이는 물통 -->
+        <!-- 사람 몸: 발끝부터 물이 차올라요 -->
         <div class="bottle" id="progress" role="progressbar" aria-label="오늘 목표까지" aria-valuemin="0" aria-valuemax="8">
-          <div class="bottle-cap"></div>
-          <div class="bottle-neck"></div>
           <div class="bottle-body" id="bottleBody">
             <div class="water" id="water">
               <svg class="wave wave-back" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 10 Q12.5 2 25 10 T50 10 T75 10 T100 10 T125 10 T150 10 T175 10 T200 10 V20 H0 Z"/></svg>
               <svg class="wave wave-front" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 10 Q12.5 2 25 10 T50 10 T75 10 T100 10 T125 10 T150 10 T175 10 T200 10 V20 H0 Z"/></svg>
             </div>
-            <div class="bottle-marks" aria-hidden="true"></div>
           </div>
+          <!-- 몸 테두리와 유리처럼 반짝이는 선 -->
+          <svg class="body-outline" viewBox="0 0 100 180" preserveAspectRatio="none" aria-hidden="true">
+            <circle cx="50" cy="17" r="14"/>
+            <path d="M44,29 L44,35 Q44,38 40,38 L30,39 Q20,40 18,52 L15,96 Q15,104 21,104 Q26,104 26,97 L28,62 Q29,57 31,62 L32,100 L33,166 Q33,174 40,174 L45,174 Q47,174 47,170 L47,112 Q50,104 53,112 L53,170 Q53,174 55,174 L60,174 Q67,174 67,166 L68,100 L69,62 Q71,57 72,62 L74,97 Q74,104 79,104 Q85,104 85,96 L82,52 Q80,40 70,39 L60,38 Q56,38 56,35 L56,29 Z"/>
+            <path class="shine" d="M41,9 Q44,6 48,5.5"/>
+            <path class="shine" d="M37,66 L37.6,94"/>
+            <path class="shine thin" d="M20.5,58 L18.6,90"/>
+          </svg>
         </div>
         <div class="today-numbers">
           <p class="today-count"><span id="todayCups">0</span><span class="unit">잔</span></p>

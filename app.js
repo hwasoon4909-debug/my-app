@@ -241,7 +241,7 @@ function renderToday() {
   el.progress.setAttribute('aria-valuenow', String(Math.min(cups, goal)));
 
   if (cups === 0) el.todayMsg.textContent = '첫 잔 시작해 볼까요?';
-  else if (cups < goal / 2) el.todayMsg.textContent = (goal - cups) + '잔만 더 마시면 돼요';
+  else if (cups < goal * 0.75) el.todayMsg.textContent = (goal - cups) + '잔만 더 마시면 돼요';
   else if (cups < goal) el.todayMsg.textContent = '거의 다 왔어요! ' + (goal - cups) + '잔 남음';
   else el.todayMsg.textContent = '목표 달성! 오늘 촉촉해요';
 

@@ -197,33 +197,52 @@ button {
 .today-last { color: var(--text-soft); font-size: 15px; }
 
 /* ----- 출렁이는 물통 ----- */
-.bottle { display: flex; flex-direction: column; align-items: center; flex: none; }
-.bottle-cap {
-  width: 42px; height: 14px;
-  background: linear-gradient(120deg, var(--accent-dark), var(--accent-light));
-  border-radius: 8px 8px 4px 4px;
+/* ----- 사람 몸 (발끝부터 물이 차올라요) ----- */
+.bottle {
+  position: relative;
+  flex: none;
+  filter: drop-shadow(0 8px 14px rgba(30, 120, 210, 0.16));
 }
-.bottle-neck { width: 48px; height: 10px; border: 3px solid #B9DCF6; border-bottom: 0; border-top: 0; background: rgba(255, 255, 255, 0.7); }
+/* 몸 모양 (테두리 그림과 같은 모양) — 이 모양 안에만 물이 보여요 */
+:root {
+  --body-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 180' preserveAspectRatio='none'%3E%3Ccircle cx='50' cy='17' r='14'/%3E%3Cpath d='M44,29 L44,35 Q44,38 40,38 L30,39 Q20,40 18,52 L15,96 Q15,104 21,104 Q26,104 26,97 L28,62 Q29,57 31,62 L32,100 L33,166 Q33,174 40,174 L45,174 Q47,174 47,170 L47,112 Q50,104 53,112 L53,170 Q53,174 55,174 L60,174 Q67,174 67,166 L68,100 L69,62 Q71,57 72,62 L74,97 Q74,104 79,104 Q85,104 85,96 L82,52 Q80,40 70,39 L60,38 Q56,38 56,35 L56,29 Z'/%3E%3C/svg%3E");
+}
+.body-outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 3;
+}
+.body-outline circle, .body-outline path {
+  fill: none;
+  stroke: #A9D3F2;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.body-outline .shine {
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+.body-outline .shine.thin { stroke-width: 2; stroke: rgba(255, 255, 255, 0.75); }
 .content::-webkit-scrollbar { display: none; }
 .bottle-body {
   position: relative;
-  width: var(--bottle-w, 108px);
-  height: var(--bottle-h, 164px);
-  border: 3px solid #B9DCF6;
-  border-radius: 30px 30px 26px 26px;
-  background: linear-gradient(90deg, rgba(244, 250, 255, 0.9), rgba(255, 255, 255, 0.95) 45%, rgba(234, 244, 253, 0.9));
-  box-shadow: inset 0 0 12px rgba(120, 190, 240, 0.25), 0 8px 20px rgba(30, 120, 210, 0.12);
+  width: var(--bottle-w, 100px);
+  height: var(--bottle-h, 180px);   /* 가로:세로 = 100:180 을 지켜요 */
+  background: linear-gradient(90deg, #EEF6FD, #FFFFFF 45%, #E6F1FC);
   overflow: hidden;
   isolation: isolate;
-}
-.bottle-marks {
-  position: absolute;
-  right: 10px; top: 0; bottom: 0;
-  width: 10px;
-  background: repeating-linear-gradient(to top, transparent 0 calc(25% - 2px), rgba(23,105,194,0.22) calc(25% - 2px) 25%);
-  border-radius: 2px;
-  pointer-events: none;
-  z-index: 2;
+  -webkit-mask-image: var(--body-mask);
+  mask-image: var(--body-mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 .water {
   position: absolute;
@@ -272,27 +291,6 @@ button {
 .wave-back  { fill: rgba(190, 235, 255, 0.55); top: -15px; height: 15px; animation: drift 5s linear infinite reverse; }
 @keyframes drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-/* 유리 물통의 반짝임 (물 위에 겹쳐 보여요) */
-.bottle-body::before {
-  content: "";
-  position: absolute;
-  top: 12px; bottom: 16px; left: 11px;
-  width: 12px;
-  border-radius: 8px;
-  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.35));
-  z-index: 2;
-  pointer-events: none;
-}
-.bottle-body::after {
-  content: "";
-  position: absolute;
-  top: 12px; left: 29px;
-  width: 5px; height: 26px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.85);
-  z-index: 2;
-  pointer-events: none;
-}
 
 /* 한 잔 누르면 출렁 */
 .water.slosh { animation: slosh 1.2s ease-out; }
@@ -639,8 +637,8 @@ button {
   .top h1 { font-size: 26px; }
   .content { gap: 10px; padding-top: 4px; }
   .card { padding: 14px 16px; }
-  .bottle-body { --bottle-w: 92px; --bottle-h: 134px; }
-  .bottle-cap { height: 12px; }
+  .bottle-body { --bottle-w: 84px; --bottle-h: 151px; }
+  .bottle .body-outline { width: 84px; height: 151px; }
   .today-count { font-size: 60px; }
   .today-msg { margin-top: 8px !important; }
   .today-foot { margin-top: 8px; }
@@ -654,8 +652,8 @@ button {
 }
 @media (max-height: 700px) {
   .hello { display: none; }
-  .bottle-body { --bottle-w: 80px; --bottle-h: 108px; }
-  .bottle-neck { height: 6px; }
+  .bottle-body { --bottle-w: 68px; --bottle-h: 122px; }
+  .bottle .body-outline { width: 68px; height: 122px; }
   .today-count { font-size: 52px; }
   .today-count .unit { font-size: 20px; }
   .week { height: 100px; }
