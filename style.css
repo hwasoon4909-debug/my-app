@@ -1,0 +1,218 @@
+/* 디자인 가이드 (CLAUDE.md 4번) */
+:root {
+  --bg: #F0FAF8;
+  --card: #FFFFFF;
+  --text: #12343B;
+  --text-soft: #46666B;
+  --sub: #CDEFEA;
+  --accent: #0B7480;
+  --accent-dark: #075C66;
+  --danger: #B3261E;
+  --radius: 8px;
+  --tap: 48px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font: inherit; color: inherit; cursor: pointer; }
+
+/* 맨 위 */
+.top {
+  padding: calc(12px + env(safe-area-inset-top)) 16px 8px;
+  text-align: center;
+}
+.top h1 { margin: 0; font-size: 24px; color: var(--accent-dark); }
+
+/* 가운데 */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(18, 52, 59, 0.08);
+}
+
+/* 오늘의 기록 */
+.today { text-align: center; }
+.today p { margin: 0; }
+.today-date { color: var(--text-soft); }
+.today-count { font-size: 64px; font-weight: 700; line-height: 1.1; color: var(--accent-dark); }
+.today-count .unit { font-size: 28px; margin-left: 4px; }
+.today-count.pop { animation: pop 0.35s ease; }
+@keyframes pop { 50% { transform: scale(1.15); } }
+.today-ml { color: var(--text-soft); margin-bottom: 12px; }
+
+.progress {
+  height: 14px;
+  background: var(--sub);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  border-radius: var(--radius);
+  transition: width 0.3s ease;
+}
+.today-msg { margin-top: 10px; font-weight: 600; }
+.today-last { color: var(--text-soft); }
+
+.btn-sub {
+  margin-top: 8px;
+  min-height: var(--tap);
+  padding: 0 16px;
+  background: transparent;
+  border: 1px solid var(--sub);
+  border-radius: var(--radius);
+  color: var(--text-soft);
+  font-size: 16px;
+}
+.btn-sub:disabled { opacity: 0.4; cursor: default; }
+
+/* 주 / 월 */
+.tabs {
+  display: flex;
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 4px;
+  gap: 4px;
+}
+.tab {
+  flex: 1;
+  min-height: var(--tap);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.tab[aria-selected="true"] { background: var(--card); color: var(--accent-dark); box-shadow: 0 1px 2px rgba(18,52,59,0.12); }
+
+.period {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+.period-title { margin: 0; font-weight: 600; }
+.btn-arrow {
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: 28px;
+  line-height: 1;
+  color: var(--accent-dark);
+}
+.btn-arrow:disabled { opacity: 0.3; cursor: default; }
+
+/* 주: 막대그래프 */
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  align-items: end;
+  height: 150px;
+}
+.bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.bar-num { font-size: 15px; color: var(--text-soft); }
+.bar-track { width: 100%; max-width: 32px; height: 100px; background: var(--bg); border-radius: var(--radius); display: flex; align-items: flex-end; overflow: hidden; }
+.bar { width: 100%; background: var(--accent); border-radius: var(--radius); }
+.bar.low { background: #5FB3BB; }
+.bar-day { font-size: 15px; margin-top: 4px; color: var(--text-soft); }
+.bar-col.is-today .bar-day { color: var(--accent-dark); font-weight: 700; }
+
+/* 월: 달력 */
+.month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.m-head { text-align: center; font-size: 14px; color: var(--text-soft); }
+.m-cell {
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.m-cell .m-cups { font-size: 15px; font-weight: 700; color: var(--text); }
+.m-cell.lv1 { background: #DDF3F0; }
+.m-cell.lv2 { background: #A9DFDA; }
+.m-cell.lv3 { background: #5FB3BB; }
+.m-cell.lv4 { background: var(--accent); color: #fff; }
+.m-cell.lv3 .m-cups, .m-cell.lv4 .m-cups { color: #fff; }
+.m-cell.lv3 { color: #0B2E33; }
+.m-cell.is-today { outline: 2px solid var(--accent-dark); outline-offset: -2px; }
+.m-empty { background: transparent; }
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0 0;
+  text-align: center;
+}
+.summary div { background: var(--bg); border-radius: var(--radius); padding: 8px 4px; }
+.summary dt { font-size: 14px; color: var(--text-soft); }
+.summary dd { margin: 0; font-weight: 700; }
+
+/* 맨 아래 큰 버튼 */
+.bottom {
+  padding: 8px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--bg);
+}
+.btn-main {
+  width: 100%;
+  min-height: 72px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(11, 116, 128, 0.3);
+}
+.btn-main:active { background: var(--accent-dark); transform: scale(0.98); }
+
+/* 묻는 창 */
+.dialog {
+  border: 0;
+  border-radius: var(--radius);
+  padding: 20px;
+  width: min(340px, calc(100% - 32px));
+  color: var(--text);
+}
+.dialog::backdrop { background: rgba(18, 52, 59, 0.45); }
+.dialog-title { margin: 0 0 4px; font-size: 20px; font-weight: 700; }
+.dialog-text { margin: 0 0 16px; color: var(--text-soft); }
+.dialog-buttons { display: flex; gap: 8px; }
+.dialog-buttons button { flex: 1; min-height: var(--tap); border-radius: var(--radius); font-weight: 600; }
+.btn-cancel { background: var(--bg); border: 1px solid var(--sub); }
+.btn-danger { background: var(--danger); border: 0; color: #fff; }
